@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace = "com.nextorra.chatx"
-    compileSdk = 36  // Fixed syntax
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.nextorra.chatx"
