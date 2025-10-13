@@ -43,3 +43,6 @@ local.properties
 # OS generated files
 Thumbs.db
 .DS_Store
+# Supabase credentials
+app/src/main/assets/supabase_config.json
+**/supabase_secrets.properties
