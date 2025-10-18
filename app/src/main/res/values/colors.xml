@@ -1,0 +1,10 @@
+<resources>
+    <!-- ChatX Brand Colors -->
+    <color name="chatx_blue">#1976D2</color>
+    <color name="chatx_light_blue">#64B5F6</color>
+    <color name="chatx_dark_blue">#0D47A1</color>
+    <color name="chatx_white">#FFFFFF</color>
+    <color name="chatx_gray">#9E9E9E</color>
+    <color name="chatx_light_gray">#F5F5F5</color>
+    <color name="chatx_dark">#212121</color>
+</resources>

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "156128114873",
+    "project_id": "chatx-d36e2",
+    "storage_bucket": "chatx-d36e2.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:156128114873:android:5a82ebbf8382d8a6d14368",
+        "android_client_info": {
+          "package_name": "com.nextorra.chatx"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAYBF_Yo1c9ZD2QY6MZgvi1hUWN704YExU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
