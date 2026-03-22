@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
-import { Settings, Grid, Bookmark, UserSquare2 } from 'lucide-react';
+import { Settings, Grid, Bookmark, UserSquare2, Heart, MessageCircle } from 'lucide-react';
 
 const Profile = () => {
   const { userId } = useParams(); // URL params like /profile/:userId
@@ -16,6 +16,10 @@ const Profile = () => {
 
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState({ fullName: '', bio: '', avatarUrl: '' });
+
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [followersCount, setFollowersCount] = useState(0);
+  const [followingCount, setFollowingCount] = useState(0);
 
   // Use the ID from URL if provided, otherwise default to logged-in user's profile
   const profileId = userId || currentUser?.id;
@@ -47,12 +51,38 @@ const Profile = () => {
         // Fetch user's posts
         const { data: postsData, error: postsError } = await supabase
           .from('posts')
-          .select('*')
+          .select('id, image_url, likes (id), comments (id)')
           .eq('user_id', profileId)
           .order('created_at', { ascending: false });
 
         if (postsError) throw postsError;
         setPosts(postsData || []);
+
+        // Fetch Follows logic
+        const { data: followersData } = await supabase
+          .from('follows')
+          .select('follower_id')
+          .eq('following_id', profileId);
+
+        const { data: followingData } = await supabase
+          .from('follows')
+          .select('following_id')
+          .eq('follower_id', profileId);
+
+        setFollowersCount(followersData?.length || 0);
+        setFollowingCount(followingData?.length || 0);
+
+        if (!isOwnProfile && currentUser) {
+          const { data: isFollowingData } = await supabase
+            .from('follows')
+            .select('*')
+            .eq('follower_id', currentUser.id)
+            .eq('following_id', profileId)
+            .single();
+
+          if (isFollowingData) setIsFollowing(true);
+        }
+
       } catch (err) {
         console.error('Error fetching profile:', err);
         setError('Failed to load profile.');
@@ -82,6 +112,28 @@ const Profile = () => {
     } catch (err) {
       console.error('Error updating profile:', err);
       alert('Failed to update profile.');
+    }
+  };
+
+  const handleToggleFollow = async () => {
+    try {
+      if (isFollowing) {
+        await supabase
+          .from('follows')
+          .delete()
+          .eq('follower_id', currentUser.id)
+          .eq('following_id', profileId);
+        setIsFollowing(false);
+        setFollowersCount(prev => prev - 1);
+      } else {
+        await supabase
+          .from('follows')
+          .insert({ follower_id: currentUser.id, following_id: profileId });
+        setIsFollowing(true);
+        setFollowersCount(prev => prev + 1);
+      }
+    } catch (error) {
+      console.error('Error toggling follow:', error);
     }
   };
 
@@ -133,8 +185,11 @@ const Profile = () => {
                  </button>
                </div>
              ) : (
-               <button className="bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold py-1.5 px-6 rounded-lg transition-colors">
-                 Follow
+               <button
+                 onClick={handleToggleFollow}
+                 className={`${isFollowing ? 'bg-gray-100 hover:bg-gray-200 text-gray-900' : 'bg-blue-500 hover:bg-blue-600 text-white'} text-sm font-semibold py-1.5 px-6 rounded-lg transition-colors`}
+               >
+                 {isFollowing ? 'Following' : 'Follow'}
                </button>
              )}
           </div>
@@ -142,8 +197,8 @@ const Profile = () => {
           {/* Stats - Desktop (Mobile usually shows these below bio, but we keep it simple here) */}
           <div className="hidden md:flex items-center gap-10 mb-4 text-sm md:text-base">
             <div><span className="font-bold">{posts.length}</span> posts</div>
-            <div><span className="font-bold">1.2M</span> followers</div>
-            <div><span className="font-bold">450</span> following</div>
+            <div><span className="font-bold">{followersCount}</span> followers</div>
+            <div><span className="font-bold">{followingCount}</span> following</div>
           </div>
 
           {/* Bio Area */}
@@ -188,8 +243,8 @@ const Profile = () => {
       {/* Mobile Stats (Only visible on small screens) */}
       <div className="flex md:hidden justify-around items-center border-t border-gray-200 py-3 text-sm">
         <div className="flex flex-col items-center"><span className="font-bold">{posts.length}</span> <span className="text-gray-500">posts</span></div>
-        <div className="flex flex-col items-center"><span className="font-bold">1.2M</span> <span className="text-gray-500">followers</span></div>
-        <div className="flex flex-col items-center"><span className="font-bold">450</span> <span className="text-gray-500">following</span></div>
+        <div className="flex flex-col items-center"><span className="font-bold">{followersCount}</span> <span className="text-gray-500">followers</span></div>
+        <div className="flex flex-col items-center"><span className="font-bold">{followingCount}</span> <span className="text-gray-500">following</span></div>
       </div>
 
       {/* Tabs */}

@@ -70,6 +70,14 @@ CREATE TABLE public.likes (
   UNIQUE(post_id, user_id)
 );
 
+CREATE TABLE public.saved_posts (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  post_id UUID REFERENCES public.posts(id) ON DELETE CASCADE NOT NULL,
+  user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+  UNIQUE(post_id, user_id)
+);
+
 
 CREATE TABLE public.conversations (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -112,6 +120,7 @@ ALTER TABLE public.posts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.follows ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.comments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.likes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.saved_posts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.conversations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.conversation_participants ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.messages ENABLE ROW LEVEL SECURITY;
@@ -188,6 +197,19 @@ CREATE POLICY "Users can insert their own likes."
 
 CREATE POLICY "Users can delete their own likes."
   ON public.likes FOR DELETE
+  USING ( auth.uid() = user_id );
+
+-- SAVED POSTS
+CREATE POLICY "Users can view their own saved posts."
+  ON public.saved_posts FOR SELECT
+  USING ( auth.uid() = user_id );
+
+CREATE POLICY "Users can save posts."
+  ON public.saved_posts FOR INSERT
+  WITH CHECK ( auth.uid() = user_id );
+
+CREATE POLICY "Users can unsave posts."
+  ON public.saved_posts FOR DELETE
   USING ( auth.uid() = user_id );
 
 -- CONVERSATIONS & MESSAGES
